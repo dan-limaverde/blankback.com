@@ -1,146 +1,258 @@
-
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Terminal Display</title>
-    <link rel="stylesheet" href="https://fonts.cdnfonts.com/css/ia-writer-quattro-s">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>BlankBack - Mindfulness Interface</title>
+    <meta name="description" content="Transforming mindfulness through adaptive AI - Coming soon" />
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/iawriter-quattro/1.0.0/iAWriterQuattroS-Regular.css" />
     <style>
-        body {{
-            margin: 0;
-            padding: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            background: black;
-            color: white;
-            font-family: 'iA Writer Quattro S', monospace;
-        }}
+      @font-face {
+        font-family: 'iA Writer Quattro';
+        src: url('https://cdnjs.cloudflare.com/ajax/libs/iawriter-quattro/1.0.0/iAWriterQuattroS-Regular.woff2') format('woff2');
+      }
 
-        .terminal {{
-            max-width: 700px;
-            width: 90%;
-        }}
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
 
-        .message {{
-            margin: 20px 0;
-        }}
+      body {
+        margin: 0;
+        min-height: 100vh;
+        background-color: black;
+        color: white;
+        font-family: 'iA Writer Quattro', monospace;
+        letter-spacing: -0.03em;
+        line-height: 1.5;
+      }
 
-        .progress-bar {{
-            width: 100%;
-            height: 5px;
-            background-color: rgba(255, 255, 255, 0.2);
-            overflow: hidden;
-            position: relative;
-        }}
+      .container {
+        min-height: 100vh;
+        padding: 2rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
 
-        .progress-bar div {{
-            width: 0;
-            height: 100%;
-            background-color: white;
-            animation: progress 3s linear forwards;
-        }}
+      .content {
+        max-width: 42rem;
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        padding-bottom: 5vh;
+      }
 
-        @keyframes progress {{
-            from {{ width: 0%; }}
-            to {{ width: 100%; }}
-        }}
+      .terminal-section {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+      }
+
+      .terminal-text {
+        font-size: 1.125rem;
+        white-space: pre;
+        height: 1.5rem;
+        margin-bottom: 1.5rem;
+      }
+
+      .progress-container {
+        height: 2px;
+        visibility: hidden;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        margin-bottom: 1.5rem;
+      }
+
+      .progress-container.visible {
+        visibility: visible;
+        opacity: 1;
+      }
+
+      .progress-bar {
+        width: 12rem;
+        height: 100%;
+        background-color: rgba(255, 255, 255, 0.2);
+      }
+
+      .progress-bar-fill {
+        height: 100%;
+        background-color: white;
+        width: 0%;
+        transition: width 3s linear;
+      }
+
+      .progress-bar-fill.animate {
+        width: 100%;
+      }
+
+      .terminal-output {
+        min-height: 1.5rem;
+        opacity: 1;
+        transition: opacity 1s ease;
+        margin-bottom: 4rem;
+      }
+
+      .terminal-output.fade-out {
+        opacity: 0;
+        transition: opacity 1s ease;
+      }
+
+      .main-message {
+        opacity: 0;
+        visibility: hidden;
+        margin-top: 4rem;
+        transition: opacity 1s ease;
+      }
+
+      .main-message.visible {
+        opacity: 1;
+        visibility: visible;
+      }
+
+      .main-message div {
+        line-height: 1.5;
+        padding: 0.25rem 0;
+      }
+
+      .main-message div:first-child,
+      .main-message div:last-child {
+        text-align: center;
+      }
+
+      @keyframes glitch {
+        0% { transform: translate(0); }
+        20% { transform: translate(-2px, 2px); }
+        40% { transform: translate(-2px, -2px); }
+        60% { transform: translate(2px, 2px); }
+        80% { transform: translate(2px, -2px); }
+        100% { transform: translate(0); }
+      }
+
+      .glitch {
+        animation: glitch 0.3s ease-in-out;
+      }
     </style>
-</head>
-<body>
-    <div class="terminal">
-        <div id="current-text" class="message"></div>
-        <div id="progress-bar-container" class="progress-bar">
-            <div></div>
+  </head>
+  <body>
+    <div class="container">
+      <div class="content">
+        <div class="terminal-section">
+          <div class="terminal-text" id="terminal"></div>
+          <div class="progress-container" id="progressContainer">
+            <div class="progress-bar">
+              <div class="progress-bar-fill" id="progressBarFill"></div>
+            </div>
+          </div>
+          <div class="terminal-output" id="terminalOutput"></div>
+          <div class="main-message" id="mainMessage"></div>
         </div>
-        <div id="main-message" class="message" style="display: none;"></div>
+      </div>
     </div>
+
     <script>
-        const messages = {{
-            header: "SYSTEM INITIALIZATION",
-            status: "BUILDING MINDFULNESS INTERFACE v2.0",
-            processingSteps: [
-                "COMPILING NEURAL NETWORKS ...",
-                "CALIBRATING SOUND ENGINES ...",
-                "OPTIMIZING AI MODELS ..."
-            ],
-            mainMessage: [
-                "[ DEAR REAKTOR.BERLIN TEAM ]",
-                "--------------------------------",
-                "WHILE OUR INTERFACE IS UNDER CONSTRUCTION",
-                "WE ARE WORKING ON SOMETHING SPECIAL FOR YOU",
-                "IN THE NEXT FEW DAYS",
-                "--------------------------------",
-                "BlankBack",
-                "TRANSFORMING MINDFULNESS THROUGH ADAPTIVE AI"
-            ]
-        }};
+      const messages = {
+        header: 'SYSTEM INITIALIZATION',
+        status: 'BUILDING MINDFULNESS INTERFACE v2.0',
+        processingSteps: [
+          'COMPILING NEURAL NETWORKS ...',
+          'CALIBRATING SOUND ENGINES ...',
+          'OPTIMIZING AI MODELS ...'
+        ],
+        mainMessage: [
+          '[ DEAR REAKTOR.BERLIN TEAM ]',
+          '--------------------------------',
+          'WHILE OUR INTERFACE IS UNDER CONSTRUCTION',
+          'WE ARE WORKING ON SOMETHING SPECIAL FOR YOU',
+          'IN THE NEXT FEW DAYS',
+          '--------------------------------',
+          'BlankBack',
+          'TRANSFORMING MINDFULNESS THROUGH ADAPTIVE AI'
+        ]
+      };
 
-        let phase = 0;
-        let processIndex = 0;
+      const terminal = document.getElementById('terminal');
+      const progressContainer = document.getElementById('progressContainer');
+      const progressBarFill = document.getElementById('progressBarFill');
+      const terminalOutput = document.getElementById('terminalOutput');
+      const mainMessage = document.getElementById('mainMessage');
 
-        const currentTextElement = document.getElementById("current-text");
-        const mainMessageElement = document.getElementById("main-message");
-        const progressBar = document.querySelector(".progress-bar div");
+      function sleep(ms) {
+        return new Promise(resolve => setTimeout(resolve, ms));
+      }
 
-        function animateBinary(text, callback) {{
-            let currentChar = 0;
-            let binaryText = Array(text.length).fill('0').join('');
-            currentTextElement.textContent = binaryText;
+      async function animateBinary(targetText, outputElement = terminal) {
+        if (!targetText) return;
+        
+        const chars = Array(targetText.length).fill('0');
+        outputElement.textContent = chars.join('');
 
-            const interval = setInterval(() => {{
-                if (currentChar < text.length) {{
-                    binaryText = binaryText.split('');
-                    binaryText[currentChar] = Math.random() > 0.5 ? '1' : '0';
-                    currentTextElement.textContent = binaryText.join('');
-                    currentChar++;
-                }} else {{
-                    clearInterval(interval);
-                    currentTextElement.textContent = text;
-                    if (callback) callback();
-                }}
-            }}, 50);
-        }}
+        for (let i = 0; i < targetText.length; i++) {
+          for (let cycle = 0; cycle < 2; cycle++) {
+            await sleep(20);
+            chars[i] = Math.random() > 0.5 ? '1' : '0';
+            outputElement.textContent = chars.join('');
+          }
+          chars[i] = targetText[i];
+          outputElement.textContent = chars.join('');
+        }
+      }
 
-        function showMainMessage() {{
-            mainMessageElement.style.display = "block";
-            messages.mainMessage.forEach((line) => {{
-                const div = document.createElement("div");
-                div.textContent = line;
-                mainMessageElement.appendChild(div);
-            }});
-        }}
+      async function glitchText(element) {
+        const originalText = element.textContent;
+        const chars = '01';
+        
+        for (let i = 0; i < 3; i++) {
+          const glitchedText = originalText
+            .split('')
+            .map(char => Math.random() > 0.7 ? chars[Math.floor(Math.random() * chars.length)] : char)
+            .join('');
+          
+          element.textContent = glitchedText;
+          element.classList.add('glitch');
+          await sleep(100);
+          element.classList.remove('glitch');
+          await sleep(50);
+        }
+        
+        element.textContent = originalText;
+      }
 
-        function nextPhase() {{
-            if (phase === 0) {{
-                animateBinary(messages.header, () => {{
-                    phase++;
-                    nextPhase();
-                }});
-            }} else if (phase === 1) {{
-                animateBinary(messages.status, () => {{
-                    phase++;
-                    progressBar.style.animationPlayState = 'running';
-                    progressBar.addEventListener('animationend', () => {{
-                        processIndex = 0;
-                        nextPhase();
-                    }});
-                }});
-            }} else if (phase === 2) {{
-                if (processIndex < messages.processingSteps.length) {{
-                    animateBinary(messages.processingSteps[processIndex], () => {{
-                        processIndex++;
-                        nextPhase();
-                    }});
-                }} else {{
-                    showMainMessage();
-                }}
-            }}
-        }}
+      async function startAnimation() {
+        // Header
+        await animateBinary(messages.header);
+        await sleep(500);
 
-        nextPhase();
+        // Status
+        await animateBinary(messages.status);
+        await sleep(500);
+
+        // Show and animate progress bar
+        progressContainer.classList.add('visible');
+        await sleep(100);
+        progressBarFill.classList.add('animate');
+        await sleep(3000);
+
+        // Processing steps
+        for (let i = 0; i < messages.processingSteps.length; i++) {
+          const step = messages.processingSteps[i];
+          await animateBinary(step, terminalOutput);
+          await sleep(500);
+        }
+
+        // Show main message with fade-in
+        mainMessage.innerHTML = messages.mainMessage
+          .map(line => `<div>${line}</div>`)
+          .join('');
+        
+        await sleep(500); // Small pause before showing
+        mainMessage.classList.add('visible');
+      }
+
+      startAnimation();
     </script>
-</body>
+  </body>
 </html>
