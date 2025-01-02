@@ -14,7 +14,7 @@ This site is configured for GitHub Pages with a custom domain. To deploy:
 
 1. Push to the `main` branch
 2. Go to repository Settings > Pages
-3. Ensure custom domain is set to `blankback.ai`
+3. Ensure custom domain is set to `blankback.com`
 4. Wait for GitHub Pages to build and deploy
 
 ## Domain Configuration
@@ -27,4 +27,3 @@ A     @     185.199.109.153
 A     @     185.199.110.153
 A     @     185.199.111.153
 CNAME www   your-username.github.io
-```
